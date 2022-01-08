@@ -24,6 +24,9 @@ contract Tournament {
  
   /// @notice Variable que dice si el torneo esta abierto a inscripciones
   bool public isOpen = true;
+  
+  /// @notice Variable que dice si el torneo termino
+  bool public isEnd = false;
 
   /// @notice NFT de premio, este contrato debe tener permisos de minteo, en caso de ser address(0) no se mintea
   IMinteable public prize;
@@ -34,6 +37,7 @@ contract Tournament {
   event TournamentNew(address manager, string name, address prize);
   event TeamPoints(address team, int256 points, string reason);
   event Match(address winner, address looser, int256 winnerPoints, int256 looserPoints);
+  event TournamentEnd(address winner);
 
   /**
     * @dev Constructor del torneo
@@ -68,6 +72,7 @@ contract Tournament {
     require(manager == msg.sender, 'Only manager can start tournament');
     require(teams.length > 1, 'Not enough teams');
     require(isOpen == false, 'Tournament is already started');
+    require(isEnd == false, 'Tournament has ended');
     isOpen = true;
     
     emit TournamentStart(name);
@@ -84,6 +89,7 @@ contract Tournament {
   function addPoints(address _team, int256 _points, string calldata _reason) external {
     require(manager == msg.sender, 'Only manager can add points');
     require(isOpen, 'Tournament is not started');
+    require(isEnd == false, 'Tournament has ended');
     require(teamId[_team] > 0, 'Team is not registered');
     teamPoints[_team] += _points;
 
@@ -93,6 +99,7 @@ contract Tournament {
   function addMatch(address _winner, address _looser, int256 _winnerPoints, int256 _looserPoints) external {
     require(manager == msg.sender, 'Only manager can add match');
     require(isOpen, 'Tournament is not started');
+    require(isEnd == false, 'Tournament has ended');
     require(teamId[_winner] > 0, 'Team is not registered');
     require(teamId[_looser] > 0, 'Team is not registered');
    
@@ -100,5 +107,23 @@ contract Tournament {
     teamPoints[_looser] += _looserPoints;
 
     emit Match(_winner, _looser, _winnerPoints, _looserPoints);
+  }
+
+  /**
+   * @dev Finaliza el torneo, y mintea el premiop
+   */
+  function endTournament(address winner) external {
+    require(manager == msg.sender, 'Only manager can end tournament');
+    require(isOpen, 'Tournament is not started');
+    require(isEnd == false, 'Tournament has ended');
+    require(teamId[winner] > 0, 'Team is not registered');
+
+    if (address(prize) != address(0)) {
+      prize.mint(winner);
+    }
+
+    isEnd = false;
+
+    emit TournamentEnd(winner);
   }
 }
