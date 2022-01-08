@@ -53,7 +53,7 @@ contract Tournament {
    * @dev Agrega un equipo al torneo (si el tornoe no comenzo)
    * @param _team Equipo a agregar
    */
-  function addTeam(address _team) public {
+  function addTeam(address _team) external {
     require(manager == msg.sender, 'Only manager can add teams');
     uint256 _id = teams.length;
     teams.push(_team);
@@ -64,7 +64,7 @@ contract Tournament {
   /**
    * @dev Inicia el torneo, cierra la inscripciones y emite el evento
    */
-  function starTournament() public {
+  function starTournament() external {
     require(manager == msg.sender, 'Only manager can start tournament');
     require(teams.length > 1, 'Not enough teams');
     require(isOpen == false, 'Tournament is already started');
@@ -81,7 +81,7 @@ contract Tournament {
    * @param _points Puntos a corregir (puede ser negativo)
    * @param _reason Justificacion del puntos
    */
-  function addPoints(address _team, int256 _points, string calldata _reason) public {
+  function addPoints(address _team, int256 _points, string calldata _reason) external {
     require(manager == msg.sender, 'Only manager can add points');
     require(isOpen, 'Tournament is not started');
     require(teamId[_team] > 0, 'Team is not registered');
@@ -90,7 +90,7 @@ contract Tournament {
     emit TeamPoints(_team, _points, _reason);
   }
 
-  function addMatch(address _winner, address _looser, int256 _winnerPoints, int256 _looserPoints) public {
+  function addMatch(address _winner, address _looser, int256 _winnerPoints, int256 _looserPoints) external {
     require(manager == msg.sender, 'Only manager can add match');
     require(isOpen, 'Tournament is not started');
     require(teamId[_winner] > 0, 'Team is not registered');
