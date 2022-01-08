@@ -5,7 +5,7 @@ interface IMinteable {
   function mint(address _winner) external;
 }
 
-/// @title Representacion de un torneo
+/// @title Representacion de un torneo usada por los NFTS
 contract Tournament {
   /// @notice Manager es el cargado de administrar el torneo, agregar equipo y determinar el ganador
   address public manager;
@@ -31,6 +31,7 @@ contract Tournament {
   /// @notice NFT de premio, este contrato debe tener permisos de minteo, en caso de ser address(0) no se mintea
   IMinteable public prize;
 
+  address public winner;
  
   event TournamentStart(string name);
   event AddTeam(uint256 id, address team);
@@ -112,18 +113,19 @@ contract Tournament {
   /**
    * @dev Finaliza el torneo, y mintea el premiop
    */
-  function endTournament(address winner) external {
+  function endTournament(address _winner) external {
     require(manager == msg.sender, 'Only manager can end tournament');
     require(isOpen, 'Tournament is not started');
     require(isEnd == false, 'Tournament has ended');
-    require(teamId[winner] > 0, 'Team is not registered');
+    require(teamId[_winner] > 0, 'Team is not registered');
 
-    if (address(prize) != address(0)) {
-      prize.mint(winner);
-    }
-
+    winner = _winner;
     isEnd = false;
 
-    emit TournamentEnd(winner);
+    if (address(prize) != address(0)) {
+      prize.mint(_winner);
+    }
+
+    emit TournamentEnd(_winner);
   }
 }
